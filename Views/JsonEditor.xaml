@@ -1,0 +1,12 @@
+<UserControl x:Class="MetroKafeEpicGames.Views.JsonEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Width="680">
+        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10"
+                   Text="Bu kurulumun dosyadaki son satırı. Kaydedilirken tek satıra sıkıştırılır. installationId değiştirilemez."/>
+        <TextBox x:Name="JsonBox" FontFamily="Consolas" FontSize="12.5" AcceptsReturn="True" AcceptsTab="True"
+                 TextWrapping="NoWrap" Height="380" VerticalContentAlignment="Top"
+                 HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" TextChanged="JsonBox_TextChanged"/>
+        <TextBlock x:Name="StatusText" Style="{StaticResource Hint}" Margin="2,8,0,0"/>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,75 @@
+<UserControl x:Class="MetroKafeEpicGames.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="SavedText" Text="✓ Kaydedildi" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center"
+                           Margin="0,0,14,0" Opacity="0"/>
+                <Button Style="{StaticResource AccentButton}" Click="Save_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE74E;" Style="{StaticResource Icon}"/>
+                        <TextBlock Text="Kaydet"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Ayarlar" Style="{StaticResource PageTitle}"/>
+                <TextBlock Text="Kurulum günlüğünün yeri ve güncelleme ayarları" Style="{StaticResource PageSubtitle}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,6,8">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE8A5;" Style="{StaticResource Icon}" Foreground="{StaticResource AccentBrush}" FontSize="15" Margin="0,0,10,0"/>
+                            <TextBlock Text="installations.jsonl konumu" Style="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,14"
+                                   Text="Boş bırakılırsa Epic Games Launcher'ın bu Windows kullanıcısındaki kaydı otomatik bulunur (%LOCALAPPDATA%\com.epicgames.eglv2). Başka bir kullanıcının ya da kopyalanmış bir dosyayı düzenlemek için yol yazabilirsiniz."/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Click="OpenFolder_Click" ToolTip="Gezgin'de aç">
+                                <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource IconFont}"/>
+                            </Button>
+                            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Click="Browse_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE838;" Style="{StaticResource Icon}"/>
+                                    <TextBlock Text="Seç"/>
+                                </StackPanel>
+                            </Button>
+                            <TextBox x:Name="FileBox" Tag="Otomatik bul" TextChanged="FileBox_TextChanged"/>
+                        </DockPanel>
+                        <TextBlock x:Name="FileInfo" Style="{StaticResource Hint}" Margin="2,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE895;" Style="{StaticResource Icon}" Foreground="{StaticResource AccentBrush}" FontSize="15" Margin="0,0,10,0"/>
+                            <TextBlock Text="Güncelleme kaynağı (GitHub)" Style="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,14"
+                                   Text="Güncellemeler bu herkese açık deponun yayınlarından (Releases) alınır; token gerekmez."/>
+                        <TextBlock Text="Depo (sahip/ad)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox x:Name="RepoBox" Tag="cetoxQ/MetroKafeEpicGames" FontFamily="Consolas"/>
+                        <CheckBox x:Name="CheckUpdatesBox" Style="{StaticResource Switch}" Content="Açılışta güncellemeleri kontrol et" Margin="0,18,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE946;" Style="{StaticResource Icon}" Foreground="{StaticResource InfoBrush}" FontSize="15" Margin="0,0,10,0"/>
+                            <TextBlock Text="Nasıl çalışır" Style="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,8,0,0" Foreground="{StaticResource SubTextBrush}" LineHeight="20"
+                                   Text="• Launcher her değişikliği dosyanın sonuna yeni bir satır olarak ekler; bir oyunun son satırı geçerlidir.&#x0a;• Oyun klasörü bulunamazsa launcher açılışta o oyun için &quot;deleted&quot; satırı yazar ve oyun listeden kaybolur.&#x0a;• Geri yükleme bu silme satırlarını kaldırır. Klasör yolu yanlışsa önce yolu düzeltin, yoksa launcher yeniden siler.&#x0a;• Her kayıtta dosyanın yanına .yedek_tarih uzantılı yedek alınır. Launcher kaydetmeden önce kapatılır."/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

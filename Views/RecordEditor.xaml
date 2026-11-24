@@ -1,0 +1,48 @@
+<UserControl x:Class="MetroKafeEpicGames.Views.RecordEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Width="620">
+        <Border Background="#0F8C95A3" CornerRadius="8" Padding="14,10">
+            <Grid TextElement.FontSize="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="installationId" Foreground="{StaticResource FaintTextBrush}"/>
+                <TextBlock x:Name="IdText" Grid.Column="1" FontFamily="Consolas"/>
+                <TextBlock Grid.Row="1" Text="artifactId" Foreground="{StaticResource FaintTextBrush}" Margin="0,4,0,0"/>
+                <TextBlock x:Name="ArtifactText" Grid.Row="1" Grid.Column="1" FontFamily="Consolas" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="2" Text="Sürüm" Foreground="{StaticResource FaintTextBrush}" Margin="0,4,0,0"/>
+                <TextBlock x:Name="VersionText" Grid.Row="2" Grid.Column="1" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="3" Text="Durum" Foreground="{StaticResource FaintTextBrush}" Margin="0,4,0,0"/>
+                <TextBlock x:Name="StateText" Grid.Row="3" Grid.Column="1" TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </Grid>
+        </Border>
+
+        <TextBlock Text="Klasör (dir)" Style="{StaticResource FieldLabel}" Margin="0,18,0,6"/>
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Click="Browse_Click" ToolTip="Klasör seç">
+                <TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFont}"/>
+            </Button>
+            <TextBox x:Name="DirBox" TextChanged="Field_TextChanged"/>
+        </DockPanel>
+        <TextBlock x:Name="DirState" Style="{StaticResource Hint}" Margin="2,5,0,0"/>
+
+        <TextBlock Text="Başlatma dosyası (launchExecutable, klasöre göre)" Style="{StaticResource FieldLabel}" Margin="0,14,0,6"/>
+        <TextBox x:Name="ExeBox" FontFamily="Consolas" TextChanged="Field_TextChanged"/>
+        <TextBlock x:Name="ExeState" Style="{StaticResource Hint}" Margin="2,5,0,0"/>
+
+        <CheckBox x:Name="CompleteBox" Style="{StaticResource Switch}" Content="Kurulum tamamlandı (complete)" Margin="0,18,0,0"/>
+        <CheckBox x:Name="RestoreBox" Style="{StaticResource Switch}" Content="Silinmiş kaydı geri yükle" Margin="0,12,0,0" Visibility="Collapsed"/>
+
+        <TextBlock Style="{StaticResource Hint}" Margin="0,16,0,0"
+                   Text="Klasör ve başlatma dosyası bu kurulumun bütün satırlarında, 'tamamlandı' bilgisi son satırda değişir. Değişiklikler Kaydet'e basınca dosyaya yazılır."/>
+        <TextBlock x:Name="ErrorText" Foreground="{StaticResource DangerBrush}" Margin="0,12,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+    </StackPanel>
+</UserControl>
