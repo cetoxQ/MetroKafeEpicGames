@@ -86,7 +86,47 @@ public class Journal
             var isDeleted = deleted.TryGetValue(id, out var del);
             result.Add(Describe(id, data, isDeleted ? del : null, counts[id], names));
         }
+        MarkDuplicates(result);
         return result;
+    }
+
+    /// <summary>
+    /// Ayni oyun (itemId) launcher'dan yeniden kurulunca yeni bir installationId alir (orn. Fortnite).
+    /// Eski kaydi geri yuklemek ayni klasore iki kayit demektir; bunu isaretler ve engeller.
+    /// </summary>
+    private static void MarkDuplicates(List<InstallRecord> records)
+    {
+        var active = records.Where(r => !r.Deleted && r.ItemId.Length > 0)
+                            .GroupBy(r => (r.ItemId, r.ParentId))
+                            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var group in active.Values.Where(g => g.Count > 1))
+        {
+            foreach (var r in group)
+            {
+                r.State = RecordState.Duplicate;
+                r.Detail = "Bu oyunun birden fazla etkin kaydı var: " + string.Join(", ", group.Where(o => o != r).Select(o => o.Id[..8])) +
+                           " · biri silinmeli";
+            }
+        }
+
+        foreach (var r in records.Where(r => r.Deleted && r.CanRestore && r.ItemId.Length > 0))
+        {
+            if (!active.TryGetValue((r.ItemId, r.ParentId), out var current)) continue;
+            r.CanRestore = false;
+            r.Detail = $"Bu oyun başka bir kayıtla kurulu ({current[0].Id[..8]}); bu eski kayıt geri yüklenmemeli";
+        }
+    }
+
+    /// <summary>Bir kurulumun ve (ana oyunsa) alt paketlerinin butun satirlari.</summary>
+    public List<JournalLine> LinesWithChildren(string id) =>
+        Lines.Where(l => l.Id == id || l.Str("parentInstallationId") == id).ToList();
+
+    /// <summary>Yedekten gelen satiri gunlugun sonuna ekler; sondaki satir gecerli oldugu icin bu kaydi etkin yapar.</summary>
+    public void Append(JournalLine line)
+    {
+        Lines.Add(new JournalLine { Raw = line.Raw, Obj = line.Obj });
+        Dirty = true;
     }
 
     private static InstallRecord Describe(string id, JournalLine? data, JournalLine? deletedLine, int count, Dictionary<string, string> names)
@@ -140,6 +180,7 @@ public class Journal
         {
             Id = id, Name = name.Length > 0 ? name : artifact, SubName = sub, Dir = dir, Version = version, Exe = exe,
             Namespace = data.Str("namespace") ?? "", ArtifactId = artifact, Complete = complete,
+            ItemId = data.Str("itemId") ?? "", ParentId = parent ?? "",
             Deleted = deletedLine != null, IsChild = parent != null, CanRestore = deletedLine != null,
             LastWritten = FormatTime((deletedLine ?? data).Str("writtenAt")), LineCount = count, State = state, Detail = detail,
         };

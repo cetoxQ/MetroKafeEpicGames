@@ -21,6 +21,12 @@ Bu program kayıtları gösterir, yolları düzeltir ve silinen kayıtları geri
 - **Geri yükle**: Silinmiş kurulumun silme satırlarını kaldırır.
 - **Düzenle / JSON**: Klasör, başlatma dosyası ve "tamamlandı" bilgisini ya da son satırın JSON'unu düzenler.
 - **Kaydı sil**: Kurulumun bütün satırlarını dosyadan çıkarır (oyun dosyalarına dokunmaz).
+- **Kodu kaydet**: Seçili oyunun (alt paketleriyle) bütün satırlarını exe'nin yanındaki `Kod Yedekleri`
+  klasörüne `Oyun_tarih.jsonl` olarak birebir kaydeder. İlk satır açıklamadır (oyun, klasör, sürüm, tarih).
+- **Koddan yükle**: Bir kod yedeğindeki son kurulum satırını günlüğün sonuna ekler; oyun listeye geri gelir.
+  Aynı oyun (itemId) başka bir installationId ile kuruluysa o kayıt kaldırılır, böylece çift kayıt oluşmaz.
+- **Çift kayıt kontrolü**: Fortnite gibi launcher'dan yeniden kurulan oyunlar yeni bir installationId alır.
+  Eski silinmiş kayıt "geri yüklenmemeli" diye işaretlenir; aynı oyunun iki etkin kaydı "Çift kayıt" olarak gösterilir.
 - **Güvenli kaydetme**: Her kayıtta `installations.jsonl.yedek_tarih` yedeği alınır, açık olan launcher
   kapatılır, dosya diskte değişmişse uyarılır. Değişmeyen satırlar dosyaya birebir geri yazılır.
 - **Güncelleme**: GitHub Releases'tan yeni sürümü indirip kendini günceller.

@@ -18,6 +18,12 @@
                         <TextBlock Text="Yenile"/>
                     </StackPanel>
                 </Button>
+                <Button Click="ImportCode_Click" Margin="10,0,0,0" ToolTip="Kod Yedekleri klasöründeki bir oyun yedeğini günlüğe geri ekle">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8B5;" Style="{StaticResource Icon}"/>
+                        <TextBlock Text="Koddan yükle"/>
+                    </StackPanel>
+                </Button>
                 <Button Click="Open_Click" Margin="10,0,0,0" ToolTip="Başka bir installations.jsonl aç">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE8E5;" Style="{StaticResource Icon}"/>
@@ -141,6 +147,10 @@
                                                     <Setter Property="Background" Value="#26F05252"/>
                                                     <Setter Property="TextElement.Foreground" Value="{StaticResource DangerBrush}"/>
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding State}" Value="Duplicate">
+                                                    <Setter Property="Background" Value="#26F05252"/>
+                                                    <Setter Property="TextElement.Foreground" Value="{StaticResource DangerBrush}"/>
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding State}" Value="ExeMissing">
                                                     <Setter Property="Background" Value="#26F05252"/>
                                                     <Setter Property="TextElement.Foreground" Value="{StaticResource DangerBrush}"/>
@@ -216,6 +226,13 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="&#xE838;" Style="{StaticResource Icon}"/>
                                     <TextBlock Text="Klasörü aç"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource GhostButton}" Click="SaveCode_Click" Margin="4,0,0,0"
+                                    ToolTip="Seçili oyunların satırlarını exe'nin yanındaki 'Kod Yedekleri' klasörüne kaydet">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE78C;" Style="{StaticResource Icon}"/>
+                                    <TextBlock Text="Kodu kaydet"/>
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource GhostButton}" Click="Json_Click" Margin="4,0,0,0" ToolTip="Son satırın JSON'unu düzenle">

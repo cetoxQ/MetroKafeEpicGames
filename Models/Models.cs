@@ -29,7 +29,7 @@ public class JournalLine
     public string? Str(string key) => Obj?[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
 }
 
-public enum RecordState { Installed, Incomplete, Deleted, FolderMissing, ExeMissing, Unknown }
+public enum RecordState { Installed, Incomplete, Deleted, FolderMissing, ExeMissing, Duplicate, Unknown }
 
 /// <summary>Bir kurulumun gunlugun sonundaki hali (satirlar sirayla uygulanarak bulunur).</summary>
 public class InstallRecord : Observable
@@ -42,14 +42,17 @@ public class InstallRecord : Observable
     public string Exe { get; init; } = "";
     public string Namespace { get; init; } = "";
     public string ArtifactId { get; init; } = "";
+    /// <summary>Oyunun katalog kimligi; ayni oyun yeniden kurulunca installationId degisir ama bu ayni kalir.</summary>
+    public string ItemId { get; init; } = "";
+    public string ParentId { get; init; } = "";
     public bool Complete { get; init; }
     public bool Deleted { get; init; }
     public bool IsChild { get; init; }
-    public bool CanRestore { get; init; }
+    public bool CanRestore { get; set; }
     public string LastWritten { get; init; } = "";
     public int LineCount { get; init; }
-    public RecordState State { get; init; }
-    public string Detail { get; init; } = "";
+    public RecordState State { get; set; }
+    public string Detail { get; set; } = "";
 
     public string StateText => State switch
     {
@@ -58,9 +61,10 @@ public class InstallRecord : Observable
         RecordState.Deleted => "Silinmiş",
         RecordState.FolderMissing => "Klasör yok",
         RecordState.ExeMissing => "Exe yok",
+        RecordState.Duplicate => "Çift kayıt",
         _ => "Bilinmiyor",
     };
 
-    public bool IsProblem => State is RecordState.FolderMissing or RecordState.ExeMissing or RecordState.Unknown
+    public bool IsProblem => State is RecordState.FolderMissing or RecordState.ExeMissing or RecordState.Duplicate or RecordState.Unknown
                              || (Deleted && CanRestore);
 }

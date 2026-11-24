@@ -91,7 +91,7 @@ public partial class InstallsView : UserControl, IPage
         StatTotal.Text = top.Count.ToString();
         StatInstalled.Text = top.Count(r => r.State == RecordState.Installed).ToString();
         StatDeleted.Text = top.Count(r => r.Deleted).ToString();
-        StatProblem.Text = top.Count(r => r.State is RecordState.FolderMissing or RecordState.ExeMissing).ToString();
+        StatProblem.Text = top.Count(r => r.State is RecordState.FolderMissing or RecordState.ExeMissing or RecordState.Duplicate).ToString();
 
         var dirty = _journal?.Dirty == true;
         SaveButton.IsEnabled = dirty;
@@ -129,7 +129,7 @@ public partial class InstallsView : UserControl, IPage
         {
             "Kurulu" => r.State == RecordState.Installed,
             "Silinmiş" => r.Deleted,
-            "Sorunlu" => r.State is RecordState.FolderMissing or RecordState.ExeMissing or RecordState.Unknown or RecordState.Incomplete,
+            "Sorunlu" => r.State is RecordState.FolderMissing or RecordState.ExeMissing or RecordState.Duplicate or RecordState.Unknown or RecordState.Incomplete,
             _ => true,
         };
         if (!ok) return false;
@@ -301,6 +301,104 @@ public partial class InstallsView : UserControl, IPage
         Rebuild();
     }
 
+    // ---- Kod yedegi ----
+
+    private async void SaveCode_Click(object sender, RoutedEventArgs e)
+    {
+        if (_journal == null) return;
+        var items = Selected;
+        if (items.Count == 0) { await MainWindow.Instance.InfoAsync("Kodu kaydet", "Önce listeden yedeklenecek oyunu seçin."); return; }
+
+        var files = new List<string>();
+        foreach (var r in items)
+        {
+            try
+            {
+                var file = CodeBackup.Save(_journal, r);
+                files.Add(file);
+                AppState.AddLog($"{r.Name}: kodu kaydedildi → {file}", LogKind.Success);
+            }
+            catch (Exception ex) { AppState.AddLog($"{r.Name}: kod kaydedilemedi: {ex.Message}", LogKind.Error); }
+        }
+        if (files.Count == 0) return;
+
+        var msg = $"{files.Count} oyunun kodu kaydedildi:\n\n" + string.Join("\n", files.Select(Path.GetFileName)) +
+                  $"\n\nKlasör: {CodeBackup.Folder}\n\nGerektiğinde 'Koddan yükle' ile geri getirebilirsiniz.";
+        if (await MainWindow.Instance.ShowDialogAsync("Kod kaydedildi", new TextBlock
+            {
+                Text = msg, TextWrapping = TextWrapping.Wrap, LineHeight = 20, Foreground = (Brush)FindResource("SubTextBrush"),
+            }, "Klasörü aç", "Kapat"))
+            AppState.OpenInExplorer(files[0]);
+    }
+
+    private async void ImportCode_Click(object sender, RoutedEventArgs e)
+    {
+        if (_journal == null) { await MainWindow.Instance.InfoAsync("Koddan yükle", "Önce installations.jsonl açılmalı."); return; }
+
+        var dlg = new OpenFileDialog
+        {
+            Title = "Oyun kod yedeğini seç",
+            Filter = "Kod yedeği (*.jsonl)|*.jsonl|Tüm dosyalar|*.*",
+            Multiselect = true,
+        };
+        if (Directory.Exists(CodeBackup.Folder)) dlg.InitialDirectory = CodeBackup.Folder;
+        if (dlg.ShowDialog() != true) return;
+
+        var incoming = new List<JournalLine>();
+        foreach (var f in dlg.FileNames)
+        {
+            try { incoming.AddRange(CodeBackup.ReadLatest(f)); }
+            catch (Exception ex) { AppState.AddLog($"{Path.GetFileName(f)} okunamadı: {ex.Message}", LogKind.Error); }
+        }
+        // Ayni kurulum birden fazla dosyada varsa son secilen gecerli
+        incoming = incoming.GroupBy(l => l.Id).Select(g => g.Last()).ToList();
+        if (incoming.Count == 0) { await MainWindow.Instance.InfoAsync("Koddan yükle", "Seçilen dosyalarda geri yüklenecek kurulum satırı yok."); return; }
+
+        // Ayni oyunun (itemId) baska bir installationId ile etkin kaydi varsa o kayit kaldirilacak
+        var replaced = new Dictionary<string, List<InstallRecord>>();
+        var body = new StackPanel();
+        foreach (var line in incoming)
+        {
+            var id = line.Id!;
+            var dir = line.Str("dir") ?? "";
+            var itemId = line.Str("itemId") ?? "";
+            var parent = line.Str("parentInstallationId") ?? "";
+            var others = _records.Where(r => !r.Deleted && r.Id != id && r.ItemId == itemId && r.ParentId == parent && itemId.Length > 0).ToList();
+            if (others.Count > 0) replaced[id] = others;
+            var existing = _records.FirstOrDefault(r => r.Id == id);
+
+            var row = new StackPanel { Margin = new Thickness(0, 0, 0, 12) };
+            var name = Path.GetFileName(dir.TrimEnd('\\'));
+            if (parent.Length > 0) name += "  (alt paket)";
+            row.Children.Add(new TextBlock { Text = name, FontWeight = FontWeights.SemiBold });
+            row.Children.Add(Hint(dir, Directory.Exists(dir) ? "SubTextBrush" : "DangerBrush"));
+            if (!Directory.Exists(dir)) row.Children.Add(Hint("⚠ Klasör bu bilgisayarda yok; launcher kaydı yeniden silebilir", "DangerBrush"));
+            if (existing != null && !existing.Deleted) row.Children.Add(Hint("Mevcut kaydın yerine yedekteki konacak", "WarningBrush"));
+            else if (existing != null) row.Children.Add(Hint("Silinmiş kayıt yedekten geri gelecek", "SuccessBrush"));
+            else row.Children.Add(Hint("Yeni kayıt olarak eklenecek", "SuccessBrush"));
+            if (others.Count > 0)
+                row.Children.Add(Hint($"Aynı oyunun şu anki kaydı ({string.Join(", ", others.Select(o => o.Id[..8]))}) kaldırılacak", "WarningBrush"));
+            body.Children.Add(row);
+        }
+
+        if (!await MainWindow.Instance.ShowDialogAsync($"{incoming.Count} kurulum yedekten yüklensin mi?", body, "Yükle")) return;
+
+        foreach (var line in incoming)
+        {
+            if (replaced.TryGetValue(line.Id!, out var others))
+                foreach (var o in others) _journal.Remove(o.Id);
+            _journal.Append(line);
+        }
+        AppState.AddLog($"{incoming.Count} kurulum koddan yüklendi. Kaydetmeyi unutmayın.", LogKind.Success);
+        Rebuild();
+    }
+
+    private TextBlock Hint(string text, string brush) => new()
+    {
+        Text = text, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0),
+        Foreground = (Brush)FindResource(brush),
+    };
+
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         if (List.SelectedItem is InstallRecord r) AppState.OpenInExplorer(r.Dir);
@@ -365,7 +463,8 @@ public partial class InstallsView : UserControl, IPage
             foreach (var r in recs)
             {
                 _journal.Update(r.Id, newDir, r.Exe, r.Complete);
-                if (restoreBox.IsChecked == true) _journal.Restore(r.Id);
+                // Ayni oyun baska kayitla kuruluysa (orn. yeniden kurulan Fortnite) eski kaydi geri getirme
+                if (restoreBox.IsChecked == true && r.CanRestore) _journal.Restore(r.Id);
             }
         }
         AppState.AddLog($"{found.Sum(f => f.Records.Count)} kaydın yolu düzeltildi. Kaydetmeyi unutmayın.", LogKind.Success);
